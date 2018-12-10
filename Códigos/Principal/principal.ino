@@ -20,6 +20,11 @@ float tempMax = 0;
 
 //LM393
 int valor_analogico;
+
+//Porta ligada ao pino IN1 do modulo
+int porta_rele1 = 7;
+//Porta ligada ao pino IN2 do modulo
+int porta_rele2 = 8;
  
 
 void leituraDHT11()
@@ -84,25 +89,47 @@ void leituraLM393()
   }
  
   //Solo com umidade moderada, acende led amarelo
-  if (valor_analogico > 400 && valor_analogico < 800)
+  if (valor_analogico > 400 && valor_analogico < 900)
   {
     Serial.println(" Status: Umidade moderada");
   }
  
   //Solo seco, acende led vermelho
-  if (valor_analogico > 800 && valor_analogico < 1024)
+  if (valor_analogico > 900 && valor_analogico < 1024)
   {
     Serial.println(" Status: Solo seco");
   }
   delay(100);
 }
 
+void ligaRele1 ()
+{
+   digitalWrite(porta_rele1, LOW);  //Liga rele 1
+}
+
+void desligaRele1 ()
+{
+   digitalWrite(porta_rele1, HIGH);  //Liga rele 1
+}
+
+void ligaRele2 ()
+{
+   digitalWrite(porta_rele2, LOW);  //Liga rele 2
+}
+
+void desligaRele2 ()
+{
+   digitalWrite(porta_rele2, HIGH);  //Liga rele 2
+}
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(pino_sinal_analogico, INPUT);
   dht.begin();
   sensors.begin();
+  //Define pinos para o rele como saida
+  pinMode(porta_rele1, OUTPUT); 
+  pinMode(porta_rele2, OUTPUT);
   // Localiza e mostra enderecos dos sensores
   Serial.println("Localizando sensores DS18B20...");
   Serial.print("Foram encontrados ");
@@ -123,7 +150,7 @@ void loop() {
   leituraDS18B20();
   Serial.println("LEITURA LM393");
   leituraLM393(); 
-
   Serial.println();
   Serial.println();
+  delay(3600000);
 }
