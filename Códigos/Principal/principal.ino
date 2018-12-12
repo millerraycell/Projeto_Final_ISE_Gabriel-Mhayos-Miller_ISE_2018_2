@@ -30,18 +30,11 @@ int valor_analogico;
 //Porta ligada ao pino IN1 do modulo
 int porta_rele1 = 7;
 
-//variáveis globais
-float umidade;
-float temperatura;
-int solo;
-
-
-void leituraDHT11()
+float leituraDHT11()
 {
    // A leitura da temperatura e umidade pode levar 250ms!
   // O atraso do sensor pode chegar a 2 segundos.
   float h = dht.readHumidity();
-  umidade = h;
   float t = dht.readTemperature();
   // testa se retorno é valido, caso contrário algo está errado.
   if (isnan(t) || isnan(h)) 
@@ -57,14 +50,14 @@ void leituraDHT11()
     Serial.print(t);
     Serial.println(" *C");
   }
+  return h;
 }
 
-void leituraDS18B20()
+float leituraDS18B20()
 {
     // Le a informacao do sensor
   sensors.requestTemperatures();
   float tempC = sensors.getTempC(sensor1);
-  temperatura = tempC;
   // Atualiza temperaturas minima e maxima
   if (tempC < tempMin)
   {
@@ -81,14 +74,14 @@ void leituraDS18B20()
   Serial.print(tempMin);
   Serial.print(" Max : ");
   Serial.println(tempMax);
+  return tempC;
   
 }
 
-void leituraLM393()
+int leituraLM393()
 {
   //Le o valor do pino A0 do sensor
   valor_analogico = analogRead(pino_sinal_analogico);
-  solo = valor_analogico;
  
   //Mostra o valor da porta analogica no serial monitor
   Serial.print("Porta analogica: ");
@@ -111,7 +104,7 @@ void leituraLM393()
   {
     Serial.println(" Status: Solo seco");
   }
-  delay(100);
+  return valor_analogico;
 }
 
 void ligaRele1 ()
@@ -133,7 +126,7 @@ void iluminar()
 
 
 void setup() {
-  // put your setup code here, to run once:
+  // put your setup code here, to run once
   Serial.begin(9600);
   pinMode(pino_sinal_analogico, INPUT);
   dht.begin();
@@ -159,30 +152,42 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  float umidade;
+  float temperatura;
+  int solo;
+  
   digitalWrite(led_vermelho, LOW);
   digitalWrite(led_amarelo, LOW);
   digitalWrite(led_verde, LOW);
   
   Serial.println("LEITURA DHT11");
-  leituraDHT11();
+  umidade = leituraDHT11();
+  Serial.println(umidade);
+  
   Serial.println("LEITURA DS18B20");
-  leituraDS18B20();
+  temperatura = leituraDS18B20();
+  Serial.println(temperatura);
+  
   Serial.println("LEITURA LM393");
-  leituraLM393();
+  solo = leituraLM393();
+  Serial.println(solo);
   Serial.println(); 
 
-  if(temperatura<=25 && 0<= solo <=900 && 60 <= umidade <= 80)
+  if(temperatura < 25)
   {
     digitalWrite(led_verde, HIGH);
   }
-  else if(temperatura>25 && 0<= solo <=900 && 60 < umidade)
-  {
-    digitalWrite(led_amarelo, HIGH);
-  }
-  else
+
+  if(60 < umidade)
   {
     digitalWrite(led_vermelho,HIGH);
   }
+  
+  if(solo < 900)
+  {
+    digitalWrite(led_amarelo, HIGH);
+  }
+  
 
   delay(1000);
 }
