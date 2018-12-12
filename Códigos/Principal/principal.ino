@@ -9,6 +9,12 @@
 #define DHTTYPE DHT11 // DHT 11
 #define ONE_WIRE_BUS 3 //Porta DS18B20
 
+//leds para ver o comportamento do sensor
+#define led_verde 13
+#define led_vermelho 8
+#define led_amarelo 12
+
+
 OneWire oneWire(ONE_WIRE_BUS); //Declarando o sensor DS18B20
 DallasTemperature sensors(&oneWire); //criando instância do DS18B20
 DeviceAddress sensor1;
@@ -23,15 +29,19 @@ int valor_analogico;
 
 //Porta ligada ao pino IN1 do modulo
 int porta_rele1 = 7;
-//Porta ligada ao pino IN2 do modulo
-int porta_rele2 = 8;
- 
+
+//variáveis globais
+float umidade;
+float temperatura;
+int solo;
+
 
 void leituraDHT11()
 {
    // A leitura da temperatura e umidade pode levar 250ms!
   // O atraso do sensor pode chegar a 2 segundos.
   float h = dht.readHumidity();
+  umidade = h;
   float t = dht.readTemperature();
   // testa se retorno é valido, caso contrário algo está errado.
   if (isnan(t) || isnan(h)) 
@@ -54,6 +64,7 @@ void leituraDS18B20()
     // Le a informacao do sensor
   sensors.requestTemperatures();
   float tempC = sensors.getTempC(sensor1);
+  temperatura = tempC;
   // Atualiza temperaturas minima e maxima
   if (tempC < tempMin)
   {
@@ -77,6 +88,7 @@ void leituraLM393()
 {
   //Le o valor do pino A0 do sensor
   valor_analogico = analogRead(pino_sinal_analogico);
+  solo = valor_analogico;
  
   //Mostra o valor da porta analogica no serial monitor
   Serial.print("Porta analogica: ");
@@ -112,15 +124,14 @@ void desligaRele1 ()
    digitalWrite(porta_rele1, HIGH);  //Liga rele 1
 }
 
-void ligaRele2 ()
+void iluminar()
 {
-   digitalWrite(porta_rele2, LOW);  //Liga rele 2
+  ligaRele1();
+  delay(600000);
+  desligaRele1();
 }
 
-void desligaRele2 ()
-{
-   digitalWrite(porta_rele2, HIGH);  //Liga rele 2
-}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -129,7 +140,10 @@ void setup() {
   sensors.begin();
   //Define pinos para o rele como saida
   pinMode(porta_rele1, OUTPUT); 
-  pinMode(porta_rele2, OUTPUT);
+  //LEDs
+  pinMode(led_verde,OUTPUT);
+  pinMode(led_vermelho,OUTPUT);
+  pinMode(led_amarelo,OUTPUT);
   // Localiza e mostra enderecos dos sensores
   Serial.println("Localizando sensores DS18B20...");
   Serial.print("Foram encontrados ");
@@ -139,18 +153,36 @@ void setup() {
      Serial.println("Sensores nao encontrados !"); 
   // Mostra o endereco do sensor encontrado no barramento
   Serial.print("Endereco sensor: ");
+  Serial.println();
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  digitalWrite(led_vermelho, LOW);
+  digitalWrite(led_amarelo, LOW);
+  digitalWrite(led_verde, LOW);
+  
   Serial.println("LEITURA DHT11");
   leituraDHT11();
   Serial.println("LEITURA DS18B20");
   leituraDS18B20();
   Serial.println("LEITURA LM393");
-  leituraLM393(); 
-  Serial.println();
-  Serial.println();
-  delay(3600000);
+  leituraLM393();
+  Serial.println(); 
+
+  if(temperatura<=25 && 0<= solo <=900 && 60 <= umidade <= 80)
+  {
+    digitalWrite(led_verde, HIGH);
+  }
+  else if(temperatura>25 && 0<= solo <=900 && 60 < umidade)
+  {
+    digitalWrite(led_amarelo, HIGH);
+  }
+  else
+  {
+    digitalWrite(led_vermelho,HIGH);
+  }
+
+  delay(1000);
 }
