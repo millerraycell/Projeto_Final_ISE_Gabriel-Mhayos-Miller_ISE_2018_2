@@ -29,6 +29,7 @@ int valor_analogico;
 
 //Porta ligada ao pino IN1 do modulo
 int porta_rele1 = 7;
+int porta_rele2 = 2;
 
 float leituraDHT11()
 {
@@ -117,10 +118,14 @@ void desligaRele1 ()
    digitalWrite(porta_rele1, HIGH);  //Liga rele 1
 }
 
+void ligaRele2 ()
+{
+   digitalWrite(porta_rele2, LOW);  //Liga rele 1
+}
 void iluminar()
 {
   ligaRele1();
-  delay(600000);
+  delay(180000);
   desligaRele1();
 }
 
@@ -132,7 +137,8 @@ void setup() {
   dht.begin();
   sensors.begin();
   //Define pinos para o rele como saida
-  pinMode(porta_rele1, OUTPUT); 
+  pinMode(porta_rele1, OUTPUT);
+  pinMode(porta_rele2,OUTPUT); 
   //LEDs
   pinMode(led_verde,OUTPUT);
   pinMode(led_vermelho,OUTPUT);
@@ -155,6 +161,7 @@ void loop() {
   float umidade;
   float temperatura;
   int solo;
+  ligaRele2();
   
   digitalWrite(led_vermelho, LOW);
   digitalWrite(led_amarelo, LOW);
@@ -187,7 +194,7 @@ void loop() {
   {
     digitalWrite(led_amarelo, HIGH);
   }
-  
+  iluminar();
 
-  delay(1000);
+  delay(120000);
 }
